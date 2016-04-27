@@ -1,0 +1,15 @@
+{
+  "name": "reddit-nodejs-api",
+  "version": "1.0.0",
+  "description": "DecodeMTL workshop to build a Reddit API with MySQL",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Ziad Saab <ziad.saab@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.10.2"
+  }
+}

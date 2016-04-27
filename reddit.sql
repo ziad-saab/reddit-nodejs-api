@@ -1,0 +1,1 @@
+-- Creates all the tables for the Reddit app
