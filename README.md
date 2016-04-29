@@ -267,3 +267,64 @@ property will be sufficient. For example:
     "username": "PM_ME_YOUR_BOOKIES"
 }
 ```
+
+### Add the voting system for posts only
+Reddit wouldn't be what it is without its voting system. The mix of up/down votes and good scoring
+functions makes it possible to view the world of Reddit from all kinds of points of view.
+
+To make the rest of the instructions clearer, let's define some terms that are proper to us and
+that describe the vote parameters and scoring functions. Note that the scoring functions are made
+for simplicity and not accuracy. They certainly wouldn't give rise to the same dynamism that is
+seen on reddit.
+
+* **`numUpvotes`**: The number of upvotes for a given post
+* **`numDownvotes`**: The number of downvotes for a given post
+* **`totalVotes`**: `= numUpvotes - numDownvotes`
+* **`voteScore`**: `= numUpvotes - numDownvotes`
+* **Top ranking**: `= voteScore`
+* **Hotness ranking**: `= voteScore / (amount of time the post has been online)`
+* **Newest ranking**: `= createdAt`
+* **Controversial ranking**: ```= numUpvotes < numDownvotes ? totalVotes * (numUpvotes / numDownvotes) : totalVotes * (numDownvotes / numUpvotes)``` we can filter out posts that have few votes (< 100) since they may not be meaningful.
+
+#### Step 1:
+Add a `votes` table to your database. The way our `votes` table will be setup is often referred to as a "join table". Its goal
+is to allow so-called many-to-many relations. In this case, a single user can vote on many posts, and a single post can
+be voted on by many users. For this reason, we can't simply have a `voterId` in the `posts` table. Neither can we have a `postVotedOn`
+or something like that in the `users` table.
+
+When creating the `votes` table, the primary key -- a unique key -- will be set to the pair `(postId, userId)`. This will ensure that
+a single user can only vote once on the same post. It will do so by disallowing queries that would introduce a pair that already exists
+in the database. It's common for a join table to not have its own automatically incrementing, unique ID. The link between the two tables
+is unique enough, and makes more sense. To do this you can simply write `PRIMARY KEY (userId, postId)` in your `CREATE TABLE`. Finally,
+each of these two ID columns will need a foreign key referencing their respective tables.
+
+In addition to the two ID columns, the `votes` table will need a `vote` column which can be set to `TINYINT`. It will take the value of
+`1` to signify an upvote, and a value of `-1` to signify a downvote. This way, when we `GROUP BY postId`, we can do a `SUM` over the `vote`
+column and easily get the `voteScore` for each post we are interested in. We can also add `createdAt` and `updatedAt` columns to this table.
+
+#### Step 2:
+Add a function called `createVote(vote, callback)` to your Reddit API. This function will take a `vote` object with `postId`, `userId`, `vote`.
+It should make sure that the `vote` is either `1`, `0` (to cancel a vote) or `-1`. Otherwise it should reject the request.
+
+If we query with a regular `INSERT` we can run into errors. The first time a user votes on a given post will pass. But
+if they try to change their vote direction, the query will fail because of a duplicate key. While we could check for this and do an `UPDATE`
+query instead, MySQL has a better way: the "[`ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html)". With
+it, we can write our voting query like this:
+```sql
+INSERT INTO `votes` SET `postId`=1, `userId`=1, `vote`=1 ON DUPLICATE KEY UPDATE `vote`=1;
+```
+This way, the first time user#1 votes for post#1, a new row will be created. If they change their minds or try to trick the system, then the `vote`
+column of the same row will be updated instead.
+
+Before you move on to the next step, it would be nice to rename your function from `createVote` to `createOrUpdateVote` to reflect more closely
+what it is doing.
+
+#### Step 3:
+Go back to your `getAllPosts` function. Add a `sortingMethod` option to the function, which will default to `new` -- the sorting we are currently using.
+Then, one at a time, start implementing the different sorting methods mentioned above. The easiest one is `top` because it's simply ranking by the
+`voteScore` in descending order.
+
+As a first step, add a `voteScore` property to each post that you retrieve. Do this by `JOIN`ing the `posts` table with the `votes` table, and grouping by `postId`.
+Add a `SUM` on the `vote` column of the `votes` table, and give it an alias of `voteScore`.
+
+Then start implementing each sorting method as you see fit, changing the `ORDER BY` clause of your query.
