@@ -18,11 +18,7 @@ In the next section, we will review in detail the contents of `reddit.js` and `i
 ## Initial files
 
 ### `reddit.sql`
-This file contains two `CREATE TABLE` statements, which we are already used to. You may notice there is
-something weird going on with the `createdAt` and `updatedAt` fields: basically we want these fields
-to be automatically set by MySQL, but MySQL only allows **one** `CURRENT_TIMESTAMP` field. So what we do
-is set the `createdAt` to `DEFAULT 0`, but later on in `reddit.js` we set it to `NULL`. Since `NULL` is
-not an acceptable value here, MySQL will make it default to the current timestamp, which is what we wanted.
+This file contains two `CREATE TABLE` statements, which we are already used to.
 
 ### `index.js`
 This is the "main" file of our application, meaning it's the one we will run to get things done.
@@ -58,9 +54,7 @@ from the hash**. The way this works is that when the user logs in, we hash the p
 same function. If both hashes match, then it's a success. Otherwise we can safely say it's the wrong password.
 
 Once the hash is completed, we get back the hashed password in our callback. We use the hashed password
-to do an `INSERT` in our database. Here we are using the `createdAt` "hack": basically we are setting
-the column to `NULL`, and MySQL will set it to the current timestamp. The `updatedAt` column is fully
-managed by MySQL: it will set it when we create the user, and update it whenever we make a change to that user.
+to do an `INSERT` in our database.
 
 Another thing you will notice is the `?`s in the SQL query. These placeholders are **super important**. First off,
 they make it so that we don't have to concatenate strings together to infinity. But more importantly,
