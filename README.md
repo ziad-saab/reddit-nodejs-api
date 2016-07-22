@@ -273,7 +273,7 @@ seen on reddit.
 
 * **`numUpvotes`**: The number of upvotes for a given post
 * **`numDownvotes`**: The number of downvotes for a given post
-* **`totalVotes`**: `= numUpvotes - numDownvotes`
+* **`totalVotes`**: `= numUpvotes + numDownvotes`
 * **`voteScore`**: `= numUpvotes - numDownvotes`
 * **Top ranking**: `= voteScore`
 * **Hotness ranking**: `= voteScore / (amount of time the post has been online)`
