@@ -8,7 +8,7 @@ CREATE TABLE `users` (
   `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 -- This creates the posts table. The userId column references the id column of
 -- users. If a user is deleted, the corresponding posts' userIds will be set NULL.
@@ -20,6 +20,6 @@ CREATE TABLE `posts` (
   `createdAt` DATETIME NOT NULL,
   `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `userId` (`userId`),
+  KEY `userId` (`userId`), -- why did we add this here? ask me :)
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
