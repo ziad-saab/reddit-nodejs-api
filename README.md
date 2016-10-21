@@ -116,7 +116,9 @@ You should return:
 ]
 ```
 
-You can achieve this by completing the current query and adding a `JOIN` to it.
+You can achieve this by completing the current query and adding a `JOIN` to it, then **transforming** the flat array you get back using a method you should be very familiar with right now ;)
+
+**Note**: MySQL cannot return a nested dataset. The result of your join will still be flat, and you will have to use some JS to make it nested.
 
 ### Add a `getAllPostsForUser(userId, options, callback)` function
 The function `getAllPosts` returns all the posts for all the users in the system (with a limit). Here,
@@ -126,7 +128,7 @@ except that it will take an additional `userId` parameter. Your function should 
 
 ### Add a `getSinglePost(postId, callback)` function
 Currently there is no way to retrieve a single post by its ID. This would be important for eventually
-displaying this data on a webpage. Create this function, and make it return a **single post**, without array.
+displaying this data on a webpage. Create this function, and make it return a **single post**, without array. Make sure to also include the user who created the post like in the getAllPosts\* functions.
 
 
 ### Add subreddits functionality
@@ -159,7 +161,7 @@ subreddits, ordered by the newly created one first.
 In the `reddit.js` API, modify the `createPost` function to take a `subredditId` parameter and use it.
 
 #### Step 6
-In the `reddit.js` API, modify the `getAllPosts` function to return the **full subreddit** associated with each post.
+In the `reddit.js` API, modify the `getAllPosts*` functions to return the **full subreddit** associated with each post.
 You will have to do an extra `JOIN` to accomplish this.
 
 ### Add the voting system for posts only
@@ -205,7 +207,7 @@ if they try to change their vote direction, the query will fail because of a dup
 query instead, MySQL has a better way: the "[`ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html)". With
 it, we can write our voting query like this:
 ```sql
-INSERT INTO `votes` SET `postId`=1, `userId`=1, `vote`=1 ON DUPLICATE KEY UPDATE `vote`=1;
+INSERT INTO `votes` SET `postId`=?, `userId`=?, `vote`=? ON DUPLICATE KEY UPDATE `vote`=?;
 ```
 This way, the first time user#1 votes for post#1, a new row will be created. If they change their minds or try to trick the system, then the `vote`
 column of the same row will be updated instead.
