@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^0.8.6",
-    "mysql": "^2.10.2"
+    "bcrypt-as-promised": "^1.1.0",
+    "promise-mysql": "^3.0.1"
   }
 }
