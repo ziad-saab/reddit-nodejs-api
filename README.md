@@ -10,7 +10,7 @@ The project has already been initialized with a few files to get you started.
 
 * `reddit.sql`: This file contains `CREATE TABLE` statements for the `users` and `posts` tables to get you started. You should add any further `CREATE TABLE`s from the workshop in this file.
 * `reddit.js`: This file contains the actual Reddit API. The only things that should be in there are functions that talk to the database.
-* `demo-using-api.js`: Basically, this file is a scratchpad. It is an **example** of how to use the Reddit API. First we have to create a database connection. Then use `new Reddit()` and pass it the connection. This will return an API object that has all the CRUD functions we need -- `createUser`, `createPost`, `getAllPosts`. We then show an example of using the API to create a new user. Once we receive the new user's ID in the callback, we use it to create a new post under that user. Finally, we print the new post ID in the console. As you are implementing the new functionality for this workshop, you can test your functions by calling them inside `demo-using-api.js` after commenting out the already existing code.
+* `demo-using-api.js`: Basically, this file is a scratchpad. It is an **example** of how to use the Reddit API. First we have to create a database connection. Then use `new Reddit()` and pass it the connection. This will return an API object that has all the CRUD functions we need -- `createUser`, `createPost`, `getAllPosts`. We then show an example of using the API to create a new user. Once we receive the new user's ID, we use it to create a new post under that user. Finally, we print the new post ID in the console. As you are implementing the new functionality for this workshop, you can test your functions by calling them inside `demo-using-api.js` after commenting out the already existing code.
 
 In the next section, we will review in detail the contents of `reddit.js` and `demo-using-api.js`.
 
@@ -32,11 +32,11 @@ Finally, after having initialized the API, we can start doing ad-hoc requests to
 This is the core file of the project. It exports a class `RedditAPI`. We can call the constructor by providing a `node-mysql` database connection object. The object will have the following functions:
 
 #### `createUser`
-The first function we see being exported is `createUser`. It takes an object of user properties, and a callback. As we can see from the code of the function, the `user` argument needs to have a `username` and a `password`. The `callback` is required, because the mysql library we are using is also callback-based. Since we are getting our result in a callback, we also have to accept a callback to pass the final result to.
+The first function we see being exported is `createUser`. It takes an object of user properties, and returns a Promise. As we can see from the code of the function, the `user` argument needs to have a `username` and a `password`.
 
 The first thing our `createUser` function does is "hash" the user's password using the `bcrypt` library. This step is necessary to protect our users' information. **It is computationaly infeasible to recover the actual password from the hash**. The way this works is that when the user logs in, we hash the provided password using the same function. If both hashes match, then it's a success. Otherwise we can safely say it's the wrong password. We will be looking at hashing in more detail next week.
 
-Once the hashing is completed, we get back the hashed password in a callback. We use the hashed password to do an `INSERT` in our database.
+Once the hashing is completed, we get back the hashed password through the `Promise`. We use the hashed password to do an `INSERT` in our database.
 
 Another thing you will notice is the `?`s in the SQL query. These placeholders are **super important**. First off, they make it so that we don't have to concatenate strings together for every parameter in the query. But more importantly, they will make sure to **properly escape** any string we give to them. To make this work, we pass the `conn.query` function an array of the strings that should replace the `?`s, and it puts the query together for us.
 
@@ -114,10 +114,10 @@ Write an `ALTER TABLE` query that will add a `subredditId INT` column to the `po
 Once you write the correct `ALTER TABLE` statement, add it to `reddit.sql` and execute it to modify the table.
 
 #### Step 3:
-In the `reddit.js` API, add a `createSubreddit(subreddit, callback)` function. It should take a subreddit object that contains a `name` and `description`. It should insert the new subreddit, and either return an error or the newly created subreddit. You can take some inspiration from the `createUser` function which operates in a similar way. Just like for `createUser`, you'll have to check if you get a "duplicate entry" error and send a more specific error message.
+In the `reddit.js` API, add a `createSubreddit(subreddit)` function. It should take a subreddit object that contains a `name` and `description`. It should insert the new subreddit, and return the ID of the new subreddit. You can take some inspiration from the `createUser` function which operates in a similar way. Just like for `createUser`, you'll have to check if you get a "duplicate entry" error and send a more specific error message.
 
 #### Step 4:
-In the `reddit.js` API, add a `getAllSubreddits(callback)` function. It should return the list of all subreddits, ordered by the newly created ones first.
+In the `reddit.js` API, add a `getAllSubreddits()` function. It should return the list of all subreddits, ordered by the newly created ones first, as a `Promise`.
 
 #### Step 5:
 In the `reddit.js` API, modify the `createPost` function to look for a `subredditId` property in the `post` object and use it. `createPost` should return an error if `subredditId` is not provided.
@@ -164,7 +164,7 @@ CREATE TABLE votes (
 ```
 
 #### Step 2:
-Add a function called `createVote(vote, callback)` to your Reddit API. This function will take a `vote` object with `postId`, `userId`, `voteDirection`.
+Add a function called `createVote(vote)` to your Reddit API. This function will take a `vote` object with `postId`, `userId`, `voteDirection`.
 Your function should make sure that the `voteDirection` is either `1`, `0` (to cancel a vote) or `-1`. If it's different, your function should return an error.
 
 If we do the query with a regular `INSERT` we can run into errors. The first time a user votes on a given post will pass. But if they try to change their vote direction, the query will fail because we would be trying to insert a new vote with the same `postId`/`userId`. One way to fix this would be to first check if the user has already voted on a post by doing a `SELECT`, and `UPDATE` the corresponding row if they have. But SQL gives us a better way to do that: [`ON DUPLICATE KEY UPDATE`](https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html). With it, we can write our voting query like this:
