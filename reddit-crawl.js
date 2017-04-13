@@ -33,7 +33,7 @@ function crawl() {
     // create a connection to the DB
     var connection = mysql.createPool({
         host     : 'localhost',
-        user     : 'ziad_saab', // CHANGE THIS :)
+        user     : 'root',
         password : '',
         database: 'reddit',
         connectionLimit: 10
@@ -78,10 +78,14 @@ function crawl() {
                                 userIdPromise = myReddit.createUser({
                                     username: post.user,
                                     password: 'abc123'
-                                });
+                            })
+                            .catch(function(err) {
+                                    return users[post.user];
+                                })
                             }
 
                             userIdPromise.then(userId => {
+                                users[post.user] = userId;
                                 return myReddit.createPost({
                                     subredditId: subId,
                                     userId: userId,
