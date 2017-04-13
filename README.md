@@ -83,9 +83,8 @@ You should return:
         "url": "https://www.noob.com",
         "createdAt": "...",
         "updatedAt": "...",
-        "userId": 1,
         "user": {
-            "id": 12,
+            "id": 1,
             "username": "n00bster",
             "createdAt": "...",
             "updatedAt": "..."
