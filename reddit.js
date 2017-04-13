@@ -43,7 +43,7 @@ class RedditAPI {
             });
     }
 
-    getAllPosts(callback) {
+    getAllPosts() {
         /*
         strings delimited with ` are an ES2015 feature called "template strings".
         they are more powerful than what we are using them for here. one feature of

@@ -157,8 +157,8 @@ CREATE TABLE votes (
   PRIMARY KEY (userId, postId), -- this is called a composite key because it spans multiple columns. the combination userId/postId must be unique and uniquely identifies each row of this table.
   KEY userId (userId), -- this is required for the foreign key
   KEY postId (postId), -- this is required for the foreign key
-  CONSTRAINT validUser FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE, -- CASCADE means also delete the votes when a user is deleted
-  CONSTRAINT validPost FOREIGN KEY (postId) REFERENCES posts (id) ON DELETE CASCADE, -- CASCADE means also delete the votes when a post is deleted
+  FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE, -- CASCADE means also delete the votes when a user is deleted
+  FOREIGN KEY (postId) REFERENCES posts (id) ON DELETE CASCADE, -- CASCADE means also delete the votes when a post is deleted
 );
 
 ```
@@ -229,9 +229,9 @@ CREATE TABLE comments (
   postId INT,
   parentId INT,
   text VARCHAR(10000),
-  CONSTRAINT validUser FOREIGN KEY (userId) REFERENCES users (id) ON DELETE SET NULL,
-  CONSTRAINT validPost FOREIGN KEY (userId) REFERENCES posts (id) ON DELETE SET NULL,
-  CONSTRAINT validComment FOREIGN KEY (parentId) REFERENCES comments (id)
+  FOREIGN KEY (userId) REFERENCES users (id) ON DELETE SET NULL,
+  FOREIGN KEY (userId) REFERENCES posts (id) ON DELETE SET NULL,
+  FOREIGN KEY (parentId) REFERENCES comments (id)
 );
 ```
 
