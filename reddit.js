@@ -1,4 +1,3 @@
-'use strict';
 var bcrypt = require('bcrypt-as-promised');
 var HASH_ROUNDS = 10;
 
@@ -31,16 +30,42 @@ class RedditAPI {
                 }
             });
     }
-
+    
+    createSubreddit(subreddit){
+        return this.conn.query(`
+            INSERT INTO subreddits (name, description, createdAt, updatedAt)
+            VALUES (?, ?, NOW(), NOW())`, [subreddit.name, subreddit.description]
+        )
+        .then(result => {
+            return result.insertId;
+        })
+        .catch(error => {
+            if (error.code === 'ER_DUP_ENTRY'){
+                throw new Error('A subreddit with this name already exists');
+            }
+            else{
+                throw error;
+            }
+        });
+    }
+    
     createPost(post) {
         return this.conn.query(
             `
-            INSERT INTO posts (userId, title, url, createdAt, updatedAt)
-            VALUES (?, ?, ?, NOW(), NOW())`,
-            [post.userId, post.title, post.url]
+            INSERT INTO posts (userId, title, url, createdAt, updatedAt, subredditId)
+            VALUES (?, ?, ?, NOW(), NOW(), ?)`,
+            [post.userId, post.title, post.url, post.subredditId]
         )
             .then(result => {
                 return result.insertId;
+            })
+            .catch(error => {
+                if (!post.subredditId){
+                    throw new Error('Could not find subreddit Id');
+                }
+                else{
+                    throw error;
+                }
             });
     }
 
@@ -56,9 +81,24 @@ class RedditAPI {
          */
         return this.conn.query(
             `
-            SELECT posts.id, title, url, userId, posts.createdAt, posts.updatedAt, username, users.createdAt, users.updatedAt
+            SELECT posts.id AS thePostId,
+            title,
+            url,
+            userId,
+            posts.createdAt AS postCreate , 
+            posts.updatedAt AS postUpdate,
+            username,
+            users.createdAt AS userCreate,
+            users.updatedAt AS userUpdate,
+            subreddits.id AS theSubredditId,
+            name,
+            description,
+            subreddits.createdAt AS subredditCreate,
+            subreddits.updatedAt AS subredditUpdate
             FROM posts JOIN users
-            WHERE users.id = posts.userId
+            ON users.id = posts.userId
+            JOIN subreddits
+            ON subreddits.id = posts.subredditId
             ORDER BY posts.createdAt DESC
             LIMIT 25`
             
@@ -66,17 +106,25 @@ class RedditAPI {
             .then (response => {
                 var mapped = response.map(function(value, index){
                 var newArr = {
-                        id: value.id,
+                        id: value.thePostId,
                         title: value.title,
                         url: value.url,
                         user: {
                             id: value.userId,
                             username: value.username,  
-                            createdAt: value.createdAt,
-                            updatedAt: value.updatedAt
+                            createdAt: value.userCreate,
+                            updatedAt: value.userUpdate
                         },
-                        createdAt: value.createdAt,
-                        updatedAt: value.updatedAt
+                        subreddit:{
+                            id: value.theSubredditId,
+                            name: value.name,
+                            description: value.description,
+                            createdAt: value.subredditCreate,
+                            updatedAt: value.subredditUpdate
+                            
+                        },
+                        createdAt: value.postCreate,
+                        updatedAt: value.postUpdate
                         
                };
                return newArr;
@@ -86,6 +134,15 @@ class RedditAPI {
             }
                 
                 );
+    }
+    getAllSubreddits(){
+        return this.conn.query(
+            `
+            SELECT id, name, description, createdAt, updatedAt
+            FROM subreddits
+            ORDER BY createdAt DESC
+            `
+            );
     }
     
 }

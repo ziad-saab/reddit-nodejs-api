@@ -27,19 +27,20 @@ var myReddit = new RedditAPI(connection);
 //         // Each post should be associated with a user ID
 //         console.log('New user created! ID=' + newUserId);
 
-        // /*return*/ myReddit.createPost({
-        //     title: 'Hello Reddit! This is my first post',
-        //     url: 'http://www.digg.com',
-        //     userId: 1
-        // });
-//     })
-//     .then(newPostId => {
-//         // If we reach that part of the code, then we have a new post. We can print the ID
-//         console.log('New post created! ID=' + newPostId);
-//     })
-//     .catch(error => {
-//         console.log(error.stack);
-//     });
+    //     /*return*/ myReddit.createPost({
+    //         title: 'A grate joke!',
+    //         url: 'http://www.digg.com',
+    //         userId: 1,
+    //         subredditId: 2 
+    //     })
+    
+    // .then(newPostId => {
+    //     // If we reach that part of the code, then we have a new post. We can print the ID
+    //     console.log('New post created! ID=' + newPostId);
+    // })
+    // .catch(error => {
+    //     console.log(error.stack);
+    // });
     
     
     myReddit.getAllPosts()
@@ -49,4 +50,21 @@ var myReddit = new RedditAPI(connection);
     )
         .then(response => {
             connection.end();
-        })
+        });
+    
+    // myReddit.createSubreddit({name: 'funny', description: 'grate jokes'})
+    //     .then(response => {
+    //         console.log(response);
+    //     })
+    //     .then(response => {
+    //         connection.end();
+    //     });
+        // myReddit.getAllSubreddits()
+        //     .then(response => {
+        //         console.log(response);
+        //     })
+        //     .then (response => {
+        //         connection.end();
+        //     });
+        
+    
